@@ -13,7 +13,7 @@ from dspy.primitives import Example, Module, Prediction
 from dspy.teleprompt.gepa.gepa_utils import DspyAdapter, DSPyTrace, PredictorFeedbackFn, ScoreWithFeedback
 from dspy.teleprompt.teleprompt import Teleprompter
 from dspy.utils.annotation import experimental
-
+from opto.optimizers.utils import print_color
 logger = logging.getLogger(__name__)
 
 AUTO_RUN_SETTINGS = {
@@ -356,6 +356,7 @@ class GEPA(Teleprompter):
         track_best_outputs: bool = False,
         warn_on_score_mismatch: bool = True,
         use_mlflow: bool = False,
+        log_frequency: int = 10,
         # Reproducibility
         seed: int | None = 0,
         # GEPA passthrough kwargs
@@ -418,6 +419,7 @@ class GEPA(Teleprompter):
         self.wandb_init_kwargs = wandb_init_kwargs
         self.warn_on_score_mismatch = warn_on_score_mismatch
         self.use_mlflow = use_mlflow
+        self.log_frequency = log_frequency
 
         if track_best_outputs:
             assert track_stats, "track_stats must be True if track_best_outputs is True."
@@ -481,7 +483,7 @@ class GEPA(Teleprompter):
         from gepa import GEPAResult, optimize
 
         from dspy.teleprompt.gepa.gepa_utils import DspyAdapter, LoggerAdapter
-
+        print_color("Running customized GEPA...", "green")
         assert trainset is not None and len(trainset) > 0, "Trainset must be provided and non-empty"
         assert teacher is None, "Teacher is not supported in DspyGEPA yet."
 
@@ -583,6 +585,7 @@ class GEPA(Teleprompter):
             track_best_outputs=self.track_best_outputs,
             display_progress_bar=True,
             raise_on_exception=True,
+            log_frequency=self.log_frequency,
 
             # Reproducibility
             seed=self.seed,
